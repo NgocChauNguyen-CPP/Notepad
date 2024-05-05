@@ -11,6 +11,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
 import java.io.*;
+import java.util.Scanner;
 
 //import java.io.FileFilter;
 //import java.io.*;
@@ -66,12 +67,35 @@ public class Notepad
             public void actionPerformed(ActionEvent event) throws HeadlessException
             {
                 //Pass myFrame as the parent. This centers the dialog on the screen
-                myOpenFileChooser.showOpenDialog(myFrame);
+                int returnValue = myOpenFileChooser.showOpenDialog(myFrame);
+                if(returnValue == JFileChooser.APPROVE_OPTION)
+                {
+                    File myFile = myOpenFileChooser.getSelectedFile();
+                    Scanner myFileData = null;
+                    try
+                    {
+                        FileReader myFileReader = new FileReader(myFile.getName());
+                    }
+                    catch(FileNotFoundException exception)
+                    {
+                        System.out.println(exception.getMessage());
+                    }
+                }
             }
         });
         
         JMenuItem mySaveOption = new JMenuItem("Save", 'S');
         mySaveOption.setAccelerator(KeyStroke.getKeyStroke('S', ActionEvent.CTRL_MASK));
+        JFileChooser mySaveFileChooser = new JFileChooser(".");
+        mySaveOption.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent event)
+            {
+                int returnValue = mySaveFileChooser.showSaveDialog(myFrame);
+            }
+        });
+        
+        
         myFileMenu.add(mySaveOption);
         
         JMenuItem mySaveAsOption = new JMenuItem("Save As...");
@@ -213,7 +237,10 @@ public class Notepad
         //Create the text editor area--still need to work on this
         JTextArea myTextArea = new JTextArea();
         myTextArea.setFont(new Font("Courier New", Font.PLAIN, 12));
-        myFrame.add(new JScrollPane(myTextArea));
+        JScrollPane myScrollPane = new JScrollPane(myTextArea);
+        myScrollPane.setPreferredSize(new Dimension(800, 600));
+        
+        myFrame.add(myScrollPane);
         
         ////GO BACK TO THE FRAME
         //Center the calculator on the default screen at startup.
