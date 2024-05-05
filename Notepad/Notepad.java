@@ -9,6 +9,11 @@
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
+import java.io.*;
+
+//import java.io.FileFilter;
+//import java.io.*;
 
 public class Notepad
 {
@@ -23,7 +28,7 @@ public class Notepad
         myFrame.setIconImage(new ImageIcon("Notepad.png").getImage());
         //Terminate the program when the user closes the application. 
         myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        //Specify FlowLayout for the layout manager
+        //Specify BorderLayout for the layout manager
         myFrame.setLayout(new BorderLayout());
         //Give the frame an initial size.
         myFrame.setSize(800,600);
@@ -43,6 +48,27 @@ public class Notepad
         JMenuItem myOpenOption = new JMenuItem("Open...", 'O');
         myOpenOption.setAccelerator(KeyStroke.getKeyStroke('O', ActionEvent.CTRL_MASK));
         myFileMenu.add(myOpenOption);
+        ////Handling event for OpenOption with FileChooser
+        JFileChooser myOpenFileChooser = new JFileChooser(".");
+        //myOpenFileChooser.setMultiSelectionEnabled(true); --> should I do it?
+        
+        
+        
+        myOpenFileChooser.setFileFilter(new JavaFileFilter());
+        myOpenFileChooser.setFileFilter(new TextFileFilter());
+        
+        myOpenFileChooser.setAcceptAllFileFilterUsed(false);
+        
+        //Ask professor if you can do void setDragEnabled(boolean)
+        
+        myOpenOption.addActionListener(new ActionListener()
+        {
+            public void actionPerformed(ActionEvent event) throws HeadlessException
+            {
+                //Pass myFrame as the parent. This centers the dialog on the screen
+                myOpenFileChooser.showOpenDialog(myFrame);
+            }
+        });
         
         JMenuItem mySaveOption = new JMenuItem("Save", 'S');
         mySaveOption.setAccelerator(KeyStroke.getKeyStroke('S', ActionEvent.CTRL_MASK));
@@ -197,7 +223,46 @@ public class Notepad
         //Display the frame.
         myFrame.setVisible(true);
     }
-
+    
+    //INNER CLASS FOR FILE FILTER
+    private class JavaFileFilter extends FileFilter
+    {
+        
+        public boolean accept(File myFile)
+        {
+            //Return true if the file is a Java Source File or Text File
+            if(myFile.getName().endsWith(".java"))
+            {
+                return true;
+            }
+            return false;
+        }
+        
+        @Override
+        public String getDescription()
+        {
+            return "Java Files (*.java)";
+        }
+    }
+    
+    private class TextFileFilter extends FileFilter
+    {
+        public boolean accept(File myFile)
+         {
+             if(myFile.getName().endsWith(".txt"))
+             {
+                 return true;
+             }
+             return false;
+         }
+         
+        @Override
+        public String getDescription()
+        {
+            return "Text Files (*.txt)";
+        }
+    }
+    
     public static void main(String[] args)
     {
         //Create the frame on the event dispatching thread. 
