@@ -1,0 +1,38 @@
+myOpenOption.addActionListener(new ActionListener()
+            {
+                public void actionPerformed(ActionEvent event) throws HeadlessException
+                {
+                    //Dialogs.fileOpenDialog(myFrame);
+                    if(myOpenFileChooser.showOpenDialog(myFrame) == JFileChooser.APPROVE_OPTION)
+                    {
+                        try
+                        {
+                            myFile = myOpenFileChooser.getSelectedFile();
+                            if(!myFile.exists())
+                            {
+                                System.out.println("New file created?");
+                                System.out.println(myFile.createNewFile());
+
+                            }
+                            
+                            myFileName = myFile.getName();
+                            myFileReader = new FileReader(myFileName);
+                            System.out.println("You chose to open this file: " + myOpenFileChooser.getSelectedFile().getName());
+                            myTextArea.read(myFileReader, null);
+                            myFileReader.close();
+                            myFrame.setTitle("Notepad - " + myFileName); 
+                        }
+                        catch(FileNotFoundException e)
+                        {
+                            //Will need to create a new file if file not exist;
+                            System.out.println("New file has been created for you.");
+
+                        }
+                        catch(IOException e)
+                        {
+                            System.out.println("Cannot read file.");
+                        }
+                    }
+
+                }
+            });
