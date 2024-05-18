@@ -1,0 +1,24 @@
+mySaveOption.addActionListener(new ActionListener()
+            {
+                public void actionPerformed(ActionEvent event)
+                {
+                    if(!myFileName.equals(""))
+                    {
+                        try
+                        {
+                            FileWriter myFileWriter = new FileWriter(myFileName);
+                            myFileWriter.write(myTextArea.getText());
+                            myFileWriter.close();
+                        }
+                        catch(IOException e)
+                        {
+                            //need to create a new file
+                        } 
+                    }
+                    else
+                    {
+                        //Will call Save As Dialog 
+                    }
+
+                }
+            });

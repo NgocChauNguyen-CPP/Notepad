@@ -21,7 +21,7 @@ public class Notepad
     //INSTANCE VARIABLES
     private JFrame myFrame;
     private JTextArea myTextArea;
-    public JFileChooser myOpenFileChooser;
+    public JFileChooser myFileChooser;
     private String myFileName;
     boolean wrapped;
     private File myFile;
@@ -59,81 +59,108 @@ public class Notepad
         myOpenOption.setAccelerator(KeyStroke.getKeyStroke('O', ActionEvent.CTRL_MASK));
         myFileMenu.add(myOpenOption);
         ////Handling event for OpenOption with FileChooser
-        myOpenFileChooser = new JFileChooser(".");
-        myOpenFileChooser.setFileFilter(new JavaFileFilter());
-        myOpenFileChooser.setFileFilter(new TextFileFilter());
+        myFileChooser = new JFileChooser(".");
+        myFileChooser.setFileFilter(new JavaFileFilter());
+        myFileChooser.setFileFilter(new TextFileFilter());
 
-        myOpenFileChooser.setAcceptAllFileFilterUsed(false);
+        myFileChooser.setAcceptAllFileFilterUsed(false);
+        myFileChooser.setDragEnabled(true);
 
-        //Ask professor if you can do void setDragEnabled(boolean)
-
+        //HANLDE EVENTS FOR OPEN OPTION
         myOpenOption.addActionListener(new ActionListener()
             {
                 public void actionPerformed(ActionEvent event) throws HeadlessException
                 {
-                    //Dialogs.fileOpenDialog(myFrame);
-                    if(myOpenFileChooser.showOpenDialog(myFrame) == JFileChooser.APPROVE_OPTION)
+                    if(myFileChooser.showOpenDialog(myFrame) == JFileChooser.APPROVE_OPTION)
                     {
                         try
                         {
-                            myFile = myOpenFileChooser.getSelectedFile();
+                            myFile = myFileChooser.getSelectedFile();
                             myFileName = myFile.getName();
+                            //debug
                             System.out.println("Want to open: "+myFileName);
-                            
-                            if(!myFile.exists())
+
+                            //Will continue this code if file exists
+                            myFileReader = new FileReader(myFileName);
+                            System.out.println(myFileName + " exists. Passed 1st try block.");
+                            System.out.println("You chose to open this file: " + myFileChooser.getSelectedFile().getName());
+                            try
                             {
-                                int answer = JOptionPane.showConfirmDialog(myFrame, myFileName + "\nFile not found.\nClick Cancel if you want to check the file name and try again.\nClick OK if you want to create a new file.", "Create a new file?", JOptionPane.OK_CANCEL_OPTION);
-                                if(answer == JOptionPane.OK_OPTION)
-                                {
-                                    myDirectoryPath = myOpenFileChooser.getCurrentDirectory().getName();
-                                    FileFilter chosenFilter = myOpenFileChooser.getFileFilter();
-                                    switch(chosenFilter.getDescription())
-                                    {
-                                        case "Java Files (*.java)":
-                                            myFileName = myFileName + ".java";
-                                            break;
-                                        case "Text Files (*.txt)":
-                                            myFileName = myFileName + ".txt";
-                                            break;
-                                    }
-                                    myFile = new File(myDirectoryPath + myFileName);
-                                    myFile.createNewFile();
-                                    newFileCreated = true;
-                                }
-                                else
-                                {
-                                    newFileCreated = false;
-                                    myOpenFileChooser.showOpenDialog(myFrame);
-                                }
-                            }
-                            else
-                            {
-                                fileExisted = true;
-                            }
-                            if(fileExisted || newFileCreated)
-                            {
-                                myFileName = myFile.getName();
-                                myFileReader = new FileReader(myFileName);
-                                System.out.println("You chose to open this file: " + myOpenFileChooser.getSelectedFile().getName());
                                 myTextArea.read(myFileReader, null);
                                 myFileReader.close();
-                                myFrame.setTitle("Notepad - " + myFileName); 
+                                System.out.println("Able to read the file");
+                                myFrame.setTitle("Notepad - " + myFileName);
                             }
+                            catch (IOException ioe)
+                            {
+                                ioe.printStackTrace();
+                                System.out.println("IOException occurred. Can't read the file into Notepad.");
+                            }
+
                         }
                         catch(FileNotFoundException e)
                         {
-                            //Will need to create a new file if file not exist;
-                            System.out.println("New file has been created for you.");
+                            int answer = JOptionPane.showConfirmDialog(myFrame, myFileName + "\nFile not found.\nClick Cancel if you want to check the file name and try again.\nClick OK if you want to create a new file.", "Create a new file?", JOptionPane.OK_CANCEL_OPTION);
+                            if(answer == JOptionPane.OK_OPTION)
+                            {
+                                FileFilter chosenFilter = myFileChooser.getFileFilter();
+                                
+                                switch(chosenFilter.getDescription())
+                                {
+                                    case "Java Files (*.java)":
+                                        myFileName = myFileName + ".java";
+                                        break;
+                                    case "Text Files (*.txt)":
+                                        myFileName = myFileName + ".txt";
+                                        break;
+                                }
+                                //debug
+                                System.out.println("New File name is: " + myFileName);
+                                //myFile = new File(myDirectoryPath + myFileName);
+                                myFile = new File(myFileName);
+                                try
+                                {
+                                    myFile.createNewFile();
+                                    newFileCreated = true;
+                                }
+                                catch (IOException ioe)
+                                {
+                                    System.out.println("Can't create new file.");
+                                    ioe.printStackTrace();
+                                }
 
+                            }
+                            else
+                            {
+                                newFileCreated = false;
+                                myFileChooser.showOpenDialog(myFrame);
+                            }
+
+                            if(newFileCreated)
+                            {
+                                try
+                                {
+                                    myFileReader = new FileReader(myFileName);
+                                    myTextArea.read(myFileReader, null);
+                                    myFileReader.close();
+                                    myFrame.setTitle("Notepad - " + myFileName);
+                                    
+                                    System.out.println("Go to Catch block. New file has been created for you.");
+                                }
+                                catch (IOException ioe)
+                                {
+                                    System.out.println("IOException occurred.");
+                                    ioe.printStackTrace();
+                                }
+
+                                
+                            }
                         }
-                        catch(IOException e)
-                        {
-                            System.out.println("Cannot read file.");
-                        }
+
                     }
-
                 }
             });
+
         JMenuItem mySaveOption = new JMenuItem("Save", 'S');
         mySaveOption.setAccelerator(KeyStroke.getKeyStroke('S', ActionEvent.CTRL_MASK));
         JFileChooser mySaveFileChooser = new JFileChooser(".");
@@ -143,22 +170,14 @@ public class Notepad
                 {
                     if(!myFileName.equals(""))
                     {
-                        try
-                        {
-                            FileWriter myFileWriter = new FileWriter(myFileName);
-                            myFileWriter.write(myTextArea.getText());
-                            myFileWriter.close();
-                        }
-                        catch(IOException e)
-                        {
-                            //need to create a new file
-                        } 
+                        writeToFile(myFileName);
                     }
                     else
                     {
+                        myFileChooser.setDialogTitle("Save As");
+
                         //Will call Save As Dialog 
                     }
-
                 }
             });
 
@@ -166,6 +185,15 @@ public class Notepad
         JMenuItem mySaveAsOption = new JMenuItem("Save As...");
         mySaveAsOption.setMnemonic('a'); //do I need this line?
         mySaveAsOption.setDisplayedMnemonicIndex(5);
+        mySaveAsOption.addActionListener(new ActionListener()
+            {
+                public void actionPerformed(ActionEvent event)
+                {
+                    //myFileChooser.setDialogTitle("Save As");
+                    //myFileChooser.showOpenDialog(myFrame); 
+                    openSaveAsDialog(myFrame);
+                }
+            });
         myFileMenu.add(mySaveAsOption);
 
         //Add separator for File Menu
@@ -276,9 +304,25 @@ public class Notepad
 
         JMenuItem myBackgroundColorOption = new JMenuItem("Background...", 'B');
         myColorOption.add(myBackgroundColorOption);
-
+        myBackgroundColorOption.addActionListener(event->
+        {
+            Color chosenBackgroundColor = JColorChooser.showDialog(myFrame, "Background Color Chooser", Color.WHITE);
+            if(chosenBackgroundColor != null)
+            {
+                myTextArea.setBackground(chosenBackgroundColor);
+            }
+        });
+        
         JMenuItem myForegroundColorOption = new JMenuItem("Foreground...", 'F');
         myColorOption.add(myForegroundColorOption);
+        myForegroundColorOption.addActionListener(event->
+        {
+            Color chosenTextColor = JColorChooser.showDialog(myFrame, "Text Color Chooser", Color.BLACK);
+            if(chosenTextColor != null)
+            {
+                myTextArea.setForeground(chosenTextColor);
+            }
+        });
 
         myFormatMenu.add(myColorOption);
         myMenuBar.add(myFormatMenu);
@@ -406,22 +450,27 @@ public class Notepad
         }
     }
 
-    public static void main(String[] args)
-    {
-        //Create the frame on the event dispatching thread. 
-        //should be new Notepad(args[0])?!
-        //Or is that new Notepad(args.length != 0 ? args[0] : null)
-        //Need to read the input from command line arguments.
-
-        SwingUtilities.invokeLater(() -> new Notepad());
-    }
-
     //INNER CLASS FOR SAVE AS DIALOG
-    private void saveAsDialog()
+    private void openSaveAsDialog(JFrame parent)
     {
-        JDialog myFindDialog = new JDialog(myFrame, "Save As");
-
+        myFileChooser.setDialogTitle("Save As");
+        myFileChooser.showOpenDialog(parent); 
     }
+
+    private void writeToFile(String myFileName)
+    {
+        try
+        {
+            FileWriter myFileWriter = new FileWriter(myFileName);
+            myFileWriter.write(myTextArea.getText());
+            myFileWriter.close();
+        }
+        catch(IOException e)
+        {
+            System.out.println("Couldn't write to file");
+        }
+    }
+
     //INNER CLASS FOR FIND DIALOG
     //don't know if I need to pass any parameter in
     //public void showFindDialog()
@@ -439,4 +488,14 @@ public class Notepad
 
     //    myFindDialog.setVisible(true);
     //}
+    public static void main(String[] args)
+    {
+        //Create the frame on the event dispatching thread. 
+        //should be new Notepad(args[0])?!
+        //Or is that new Notepad(args.length != 0 ? args[0] : null)
+        //Need to read the input from command line arguments.
+
+        SwingUtilities.invokeLater(() -> new Notepad());
+    }
 }
+
